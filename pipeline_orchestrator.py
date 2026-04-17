@@ -326,8 +326,8 @@ class StructuralHandoffStage:
 
             # Simple translation: single nucleotide → codon approximation
             if len(ref_allele) == 1 and len(alt_allele) == 1:
-                ref_codon = ref_allele + "TT"
-                alt_codon = alt_allele + "TT"
+                ref_codon = ref_allele + "TT" # why adding only TT? Why not all possible combinations?
+                alt_codon = alt_allele + "TT" # why adding only TT? Why not all possible combinations?
 
                 ref_aa = GENETIC_CODE.get(ref_codon.upper(), "Unk")
                 alt_aa = GENETIC_CODE.get(alt_codon.upper(), "Unk")
@@ -452,7 +452,7 @@ class PipelineOrchestrator:
 
         try:
             # Stage 1: GWAS Ingestion
-            stage1 = GwasIngestionStage(gwas_file)
+            stage1 = GwasIngestionStage(gwas_file) # imports and filters the GWAS data
             df_filtered = stage1.execute()
 
             # Stage 2: Locus Identification
@@ -494,29 +494,6 @@ class PipelineOrchestrator:
 def main():
     """Demo: Run complete pipeline."""
     gwas_file = Path("metal_eGFR_meta1.TBL.map.annot.gc.gz")
-
-    if not gwas_file.exists():
-        logger.warning(
-            f"GWAS file not found: {gwas_file}\n"
-            "To run the pipeline, provide path to your GWAS data."
-        )
-        logger.info("Creating demo with mock data for testing...")
-
-        # Create mock GWAS data for testing
-        demo_gwas_path = Path("mock_gwas.tsv.gz")
-        import gzip
-        import tempfile
-
-        mock_data = """chr\tpos\tRSID\tAllele1\tAllele2\tFreq1\tEffect\tStdErr\tP-value\tDirection\tMarkerName\tP.value.GC\tStdErr.GC\tn\tmac
-1\t123456\trs12345\tA\tG\t0.45\t0.025\t0.008\t1.2e-8\t+\tchr1:123456\t1.5e-8\t0.009\t50000\t100
-2\t234567\trs23456\tT\tC\t0.35\t-0.020\t0.007\t2.3e-9\t-\tchr2:234567\t2.8e-9\t0.008\t50000\t80
-3\t345678\trs34567\tG\tA\t0.55\t0.015\t0.006\t4.5e-10\t+\tchr3:345678\t5.2e-10\t0.007\t50000\t120
-"""
-        with gzip.open(demo_gwas_path, "wt") as f:
-            f.write(mock_data)
-
-        gwas_file = demo_gwas_path
-        logger.info(f"  ✓ Created demo GWAS file: {gwas_file}")
 
     orchestrator = PipelineOrchestrator()
     results = orchestrator.run_full_pipeline(gwas_file=gwas_file)
